@@ -6,6 +6,24 @@ on:
   
 
 jobs:
+
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+  
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: "22"
+  
+        - name: Install dependencies
+          run: npm install
+  
+        - name: Run linter
+          run: npm run lint
+        
     test:
         runs-on: ubuntu-latest
         steps:
@@ -24,7 +42,7 @@ jobs:
               run: npm run check
     
     build:
-        needs: test
+        needs: [lint, test]
         runs-on: ubuntu-latest
         steps:
 
@@ -72,12 +90,16 @@ jobs:
             - name: Install The Package
               run: npm install
             
+            - name: Install PM2
+              run: npm install -g pm2
+          
             - name: Run The Application By PM2
               run: |
                 ls -a
-                pm2 status
-                # delete node-app process
                 pm2 delete node-app || true
+                pm2 start "npm start" --name="node-app"
+                pm2 save
+
 
                 # pm2 restart all
 
